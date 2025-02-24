@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+import numpy as np
 
 class RTLParser:
     def __init__(self, rtl_code, model_path="timing_violation_model.pkl"):
@@ -47,82 +48,35 @@ class RTLParser:
         except nx.NetworkXError:
             return -1
 
-    def rule_based_heuristics(self, fan_in, fan_out, depth):
-        """Applies rule-based heuristics for timing analysis."""
-        warnings = []
-        if fan_in > 5:
-            warnings.append("High fan-in detected, may cause delay issues. Consider buffering.")
-        if fan_out > 3:
-            warnings.append("High fan-out detected, may cause excessive load. Consider pipelining.")
-        if depth > 10:
-            warnings.append("Deep combinational path detected. Consider restructuring logic or adding pipeline registers.")
-        return warnings
-
-    def analyze_signal(self, signal):
-        """Extracts metadata for a given signal and predicts timing violations."""
-        if signal not in self.graph:
-            return f"Signal {signal} not found."
-        fan_io = self.get_fan_in_out(signal)
-        depth = self.get_longest_path_depth()
-        import numpy as np
-        prediction = self.model.predict(pd.DataFrame(np.array([[fan_io["fan_in"], fan_io["fan_out"], depth]]),,
-                                                                                          columns=["fan_in", "fan_out", "depth"]))[0]
-        timing_violation = "Yes" if prediction == 1 else "No"
-        rule_based_warnings = self.rule_based_heuristics(fan_io["fan_in"], fan_io["fan_out"], depth)
-        return {
-            "signal": signal,
-            "fan_in": fan_io["fan_in"],
-            "fan_out": fan_io["fan_out"],
-            "estimated_depth": depth,
-            "timing_violation": timing_violation,
-            "heuristic_warnings": rule_based_warnings
-        }
-
-    def visualize_netlist(self):
-        """Displays a graphical representation of the RTL netlist."""
-        plt.figure(figsize=(10, 6))
-        pos = nx.spring_layout(self.graph)
-        nx.draw(self.graph, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=10)
-        plt.title("RTL Netlist Visualization")
-        plt.show()
-
-    def load_or_train_model(self):
-        """Loads or trains an ML model for timing violation prediction."""
-        if joblib.os.path.exists(self.model_path):
-            return joblib.load(self.model_path)
-        else:
-            return self.train_model()
-
     def train_model(self):
-        """Trains a more accurate Gradient Boosting model for timing prediction."""
+        """Trains a more accurate Gradient Boosting model for timing prediction with diverse metadata."""
+        np.random.seed(42)
+        num_samples = 500
+        fan_in = np.random.randint(1, 50, num_samples)
+        fan_out = np.random.randint(1, 40, num_samples)
+        depth = np.random.randint(1, 100, num_samples)
+        gate_count = np.random.randint(10, 1000, num_samples)
+        wire_length = np.random.randint(5, 500, num_samples)
+        timing_violation = np.where((depth > 20) & (fan_in > 10) & (fan_out > 15) & (gate_count > 200), 1, 0)
+        
         data = pd.DataFrame({
-            "fan_in": [1, 3, 2, 4, 5, 6, 7],
-            "fan_out": [2, 1, 3, 2, 1, 4, 5],
-            "depth": [2, 5, 3, 6, 7, 9, 12],
-            "timing_violation": [0, 1, 0, 1, 1, 1, 1]
+            "fan_in": fan_in,
+            "fan_out": fan_out,
+            "depth": depth,
+            "gate_count": gate_count,
+            "wire_length": wire_length,
+            "timing_violation": timing_violation
         })
+        
         X = data.drop(columns=["timing_violation"])
         y = data["timing_violation"]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        model = GradientBoostingClassifier(n_estimators=200, learning_rate=0.05, random_state=42)
+        model = GradientBoostingClassifier(n_estimators=300, learning_rate=0.03, random_state=42)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         print("Model Accuracy:", accuracy_score(y_test, y_pred))
         joblib.dump(model, self.model_path)
         return model
-
-# Example RTL module
-rtl_example = """
-module example(a, b, c, d, out);
-    input a, b, c, d;
-    output out;
-    wire w1, w2, w3;
-    assign w1 = a & b;
-    assign w2 = c | d;
-    assign w3 = w1 ^ w2;
-    assign out = ~w3;
-endmodule
-"""
 
 parser = RTLParser(rtl_example)
 parser.visualize_netlist()
