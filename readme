@@ -1,19 +1,9 @@
 # RTL Timing Violation Analysis Using Machine Learning
 
 ## **Overview**
-Timing analysis is a crucial step in digital circuit design, ensuring that signals meet timing constraints. Traditional synthesis-based tools take a long time to generate timing reports, leading to delayed iterations. This project introduces an **AI-driven approach** to predict **combinational logic depth** and detect **timing violations** before synthesis.
+Timing analysis is a crucial step in digital circuit design, ensuring that signals meet timing constraints. Traditional synthesis-based tools take a long time to generate timing reports, leading to delayed iterations. This project introduces an **AI-driven approach** to predict **combinational logic depth** and detect **timing violations** before synthesis. 
 
 By using **graph-based netlist representation** and **machine learning models**, the tool enables designers to detect timing issues early, reducing dependency on slow synthesis tools and speeding up the development cycle.
-
----
-
-## **Features**
-✔ **Graph-based RTL Analysis** – Constructs a **Directed Acyclic Graph (DAG)** representation of the RTL circuit.  
-✔ **Machine Learning Predictions** – Uses **Gradient Boosting Classifier** for predicting timing violations.  
-✔ **Feature Engineering** – Extracts features like **fan-in, fan-out, depth, gate count, wire length, and clock skew**.  
-✔ **AMD UG949 Integration** – Implements **timing constraints and setup/hold timing considerations** from AMD methodologies.  
-✔ **Fast & Efficient** – Provides **millisecond-level** predictions compared to **minutes/hours** required for synthesis.  
-✔ **Real Dataset Training** – Trained using **Yosys/Vivado synthesis reports** and OpenCores designs.  
 
 ---
 
@@ -77,11 +67,11 @@ jupyter notebook notebooks/analysis.ipynb
 
 ---
 
-## **Approach Used**
-1️⃣ **Graph Representation of RTL** → Builds a **DAG** representation of the circuit.  
-2️⃣ **Feature Engineering** → Extracts **fan-in, fan-out, depth, clock skew, etc.**.  
+## **The Approach Used to Generate the Algorithm**
+1️⃣ **Graph Representation of RTL** → Parses RTL code and constructs a **Directed Acyclic Graph (DAG)** representation.  
+2️⃣ **Feature Engineering** → Extracts **fan-in, fan-out, depth, gate count, wire length, clock skew, etc.**.  
 3️⃣ **Machine Learning Model** → **Gradient Boosting Classifier** trained on real & synthetic datasets.  
-4️⃣ **Integration of AMD UG949 Methodology** → Includes **timing constraints & validation**.  
+4️⃣ **Integration of AMD UG949 Methodology** → Implements **timing constraints & validation**.  
 5️⃣ **Performance Optimization** → Achieves **millisecond-level** prediction speed.  
 
 ---
@@ -102,14 +92,6 @@ jupyter notebook notebooks/analysis.ipynb
 
 ---
 
-## **Alternatives Considered**
-🔹 **Rule-Based Heuristics** – Simple but **less accurate & scalable**.  
-🔹 **Full Synthesis-Based Analysis** – **Accurate but slow**.  
-🔹 **Deep Learning (GNNs)** – Potentially powerful but **high training cost**.  
-✅ **Final Choice:** **Hybrid Graph + ML Approach (Gradient Boosting)** for **speed & accuracy**.  
-
----
-
 ## **References & Resources**
 📌 **Datasets Used:** OpenCores, RISC-V, AMD FPGA designs.  
 📌 **Synthesis Tools:** Yosys, Vivado, Synopsys DC.  
@@ -127,4 +109,5 @@ jupyter notebook notebooks/analysis.ipynb
 
 ## **License**
 MIT License - Open Source Contribution Welcome! 🚀
+
 
