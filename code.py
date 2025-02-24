@@ -64,7 +64,9 @@ class RTLParser:
             return f"Signal {signal} not found."
         fan_io = self.get_fan_in_out(signal)
         depth = self.get_longest_path_depth()
-        prediction = self.model.predict([[fan_io["fan_in"], fan_io["fan_out"], depth]])[0]
+        import numpy as np
+        prediction = self.model.predict(pd.DataFrame(np.array([[fan_io["fan_in"], fan_io["fan_out"], depth]]),,
+                                                                                          columns=["fan_in", "fan_out", "depth"]))[0]
         timing_violation = "Yes" if prediction == 1 else "No"
         rule_based_warnings = self.rule_based_heuristics(fan_io["fan_in"], fan_io["fan_out"], depth)
         return {
