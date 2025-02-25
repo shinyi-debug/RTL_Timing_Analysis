@@ -53,13 +53,15 @@ module generated_circuit (
         return rtl_code
 
 class RTLParser:
-    def __init__(self, rtl_code, model_path="timing_regression_model.pkl"):
+    def __init__(self, rtl_code, model_path="timing_regression_model.pkl", timing_data_path="timing_report.csv"):
         self.rtl_code = rtl_code
         self.graph = nx.DiGraph()
         self.model_path = model_path
+        self.timing_data_path = timing_data_path
         self.model = self.load_or_train_model()
         self.extract_netlist()
         self.create_graph()
+        self.load_real_timing_data()
 
     def extract_netlist(self):
         lines = self.rtl_code.split("\n")
@@ -78,6 +80,16 @@ class RTLParser:
         except nx.NetworkXError:
             return -1
     
+    def load_real_timing_data(self):
+        """Loads timing analysis data from an AMD Vivado synthesis report."""
+        try:
+            timing_data = pd.read_csv(self.timing_data_path)
+            print("Loaded real timing data for improved accuracy.")
+            return timing_data
+        except FileNotFoundError:
+            print("Warning: Timing report not found. Using synthetic data instead.")
+            return None
+    
     def train_model(self):
         num_samples = 5000  # Increased dataset for better accuracy
         fan_in = np.random.randint(1, 100, num_samples)
@@ -87,10 +99,25 @@ class RTLParser:
         wire_length = np.random.randint(5, 5000, num_samples)
         clock_skew = np.random.uniform(0.1, 5.0, num_samples)
         logic_utilization = np.random.uniform(10, 90, num_samples)
-        slack = np.random.uniform(-5, 5, num_samples)
-        data = pd.DataFrame({"fan_in": fan_in, "fan_out": fan_out, "depth": depth, "gate_count": gate_count, "wire_length": wire_length, "clock_skew": clock_skew, "logic_utilization": logic_utilization, "slack": slack})
-        X = data.drop(columns=["slack"])
-        y = data["slack"]
+        wns = np.random.uniform(-3.0, 2.0, num_samples)  # Worst Negative Slack
+        tns = np.random.uniform(-100, 10, num_samples)  # Total Negative Slack
+        failing_endpoints = np.random.randint(0, 50, num_samples)
+        setup_violations = np.random.randint(0, 30, num_samples)
+        hold_violations = np.random.randint(0, 20, num_samples)
+        path_delay = np.random.uniform(0.5, 10.0, num_samples)
+        
+        data = pd.DataFrame({"fan_in": fan_in, "fan_out": fan_out, "depth": depth, "gate_count": gate_count,
+                             "wire_length": wire_length, "clock_skew": clock_skew, "logic_utilization": logic_utilization,
+                             "wns": wns, "tns": tns, "failing_endpoints": failing_endpoints,
+                             "setup_violations": setup_violations, "hold_violations": hold_violations,
+                             "path_delay": path_delay})
+        
+        real_data = self.load_real_timing_data()
+        if real_data is not None:
+            data = pd.concat([data, real_data], ignore_index=True)
+        
+        X = data.drop(columns=["wns"])  # Predicting slack (WNS)
+        y = data["wns"]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         model = GradientBoostingRegressor(n_estimators=500, learning_rate=0.02, random_state=42)
         model.fit(X_train, y_train)
