@@ -1,6 +1,10 @@
+opencv-python
+numpy
 networkx
 matplotlib
 pandas
 scikit-learn
 joblib
-numpy
+tensorflow
+ultralytics
+
