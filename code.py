@@ -79,12 +79,16 @@ class RTLParser:
             return -1
     
     def train_model(self):
-        num_samples = 2000
-        fan_in = np.random.randint(1, 50, num_samples)
-        fan_out = np.random.randint(1, 40, num_samples)
-        depth = np.random.randint(1, 100, num_samples)
+        num_samples = 5000  # Increased dataset for better accuracy
+        fan_in = np.random.randint(1, 100, num_samples)
+        fan_out = np.random.randint(1, 80, num_samples)
+        depth = np.random.randint(1, 150, num_samples)
+        gate_count = np.random.randint(10, 5000, num_samples)
+        wire_length = np.random.randint(5, 5000, num_samples)
+        clock_skew = np.random.uniform(0.1, 5.0, num_samples)
+        logic_utilization = np.random.uniform(10, 90, num_samples)
         slack = np.random.uniform(-5, 5, num_samples)
-        data = pd.DataFrame({"fan_in": fan_in, "fan_out": fan_out, "depth": depth, "slack": slack})
+        data = pd.DataFrame({"fan_in": fan_in, "fan_out": fan_out, "depth": depth, "gate_count": gate_count, "wire_length": wire_length, "clock_skew": clock_skew, "logic_utilization": logic_utilization, "slack": slack})
         X = data.drop(columns=["slack"])
         y = data["slack"]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -99,5 +103,6 @@ rtl_generated = image_processor.generate_rtl()
 parser = RTLParser(rtl_generated)
 analysis = parser.get_longest_path_depth()
 print(f"Longest Logic Depth: {analysis}")
+
 
 
