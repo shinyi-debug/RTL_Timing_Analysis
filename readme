@@ -1,0 +1,66 @@
+# RTL Timing Analysis with AI-Based Circuit Recognition
+
+## Overview
+This project automates the extraction of RTL (Register Transfer Level) code from circuit images, predicts combinational logic depth, and detects timing violations using AI and machine learning.
+
+## Features
+- **Circuit Image to RTL Code**: Uses a pre-trained deep learning model (YOLO) to identify logic gates in a circuit diagram and convert them into Verilog RTL code.
+- **Graph-Based Logic Depth Calculation**: Converts RTL into a directed graph to compute the longest combinational logic depth.
+- **ML-Based Timing Analysis**: Uses a trained regression model to predict **slack values** and identify timing violations.
+- **Vivado Timing Report Integration**: Supports **real-world timing analysis data from AMD's Vivado**.
+
+## Installation
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/yourrepository.git
+cd yourrepository
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Download Pre-Trained Model
+Since this project uses a pre-trained YOLO model to detect logic gates, download the model using:
+```bash
+python download_model.py
+```
+
+### 4. Run Image-to-RTL Conversion & Timing Analysis
+```bash
+python main.py
+```
+
+## Training the Model
+If you need to train your own **YOLO model** for logic gate detection:
+1. Modify `data.yaml` to reflect dataset paths.
+2. Train the model with:
+```bash
+yolo task=detect mode=train model=yolov8n.pt data=data.yaml epochs=100 imgsz=640
+```
+
+For **timing analysis regression training**, modify `train_model()` inside `main.py` and retrain:
+```bash
+python train_model.py
+```
+
+## File Structure
+```
+/
+│── circuit.png                # Input circuit image
+│── main.py                    # Main script for RTL generation & analysis
+│── train_model.py              # Model training script
+│── download_model.py           # Script to fetch pre-trained YOLO model
+│── requirements.txt            # Dependencies
+│── timing_report.csv           # Real timing analysis data from Vivado
+│── data.yaml                   # YOLO dataset config
+│── README.md                   # Documentation
+```
+
+## Contributions
+Feel free to open an issue or a pull request if you'd like to contribute to improving timing analysis accuracy!
+
+## License
+MIT License. Free to use and modify!
+
