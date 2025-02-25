@@ -26,24 +26,29 @@ class CircuitImageProcessor:
     def detect_components(self):
         """Uses a pre-trained deep learning model to detect logic gates."""
         image = cv2.imread(self.image_path)
-        # Placeholder for model inference
-        detected_gates = ["AND", "OR", "FLIPFLOP"]  # Example detected components
+        image_resized = cv2.resize(image, (128, 128)) / 255.0
+        image_expanded = np.expand_dims(image_resized, axis=0)
+        predictions = self.model.predict(image_expanded)
+        detected_gates = ["AND" if pred[0] > 0.5 else "OR" if pred[1] > 0.5 else "FLIPFLOP" for pred in predictions]
         return detected_gates
 
     def generate_rtl(self):
-        """Converts detected circuit components into RTL code."""
+        """Converts detected circuit components into RTL code dynamically."""
+        detected_gates = self.detect_components()
         rtl_code = """
 module generated_circuit (
     input wire A, B,
     output wire Q
 );
     wire C, D, D_int;
-    assign C = A & B;
-    assign D = C | A;
-    assign D_int = D ^ B;
-    always @(posedge clk) Q <= D_int;
-endmodule
         """
+        if "AND" in detected_gates:
+            rtl_code += "\n    assign C = A & B;"
+        if "OR" in detected_gates:
+            rtl_code += "\n    assign D = C | A;"
+        if "FLIPFLOP" in detected_gates:
+            rtl_code += "\n    always @(posedge clk) Q <= D;"
+        rtl_code += "\nendmodule"
         self.rtl_code = rtl_code
         return rtl_code
 
@@ -94,4 +99,5 @@ rtl_generated = image_processor.generate_rtl()
 parser = RTLParser(rtl_generated)
 analysis = parser.get_longest_path_depth()
 print(f"Longest Logic Depth: {analysis}")
+
 
